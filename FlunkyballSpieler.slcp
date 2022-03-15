@@ -35,12 +35,11 @@ component:
 - {id: device_init}
 - {id: rail_util_pti}
 - {id: brd4314a}
+- {id: udelay}
 - {id: BGM220PC22HNA}
-- {id: sensor_rht_mock}
 - {id: app_log}
 - {id: sl_system}
 - {id: bluetooth_feature_connection}
-- {id: health_thermometer}
 - {id: bluetooth_feature_advertiser}
 - instance: [vcom]
   id: iostream_usart

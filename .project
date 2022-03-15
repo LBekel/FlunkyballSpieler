@@ -406,16 +406,6 @@
 			<locationURI>STUDIO_SDK_LOC/util/third_party/printf/printf.h</locationURI>
 		</link>
 		<link>
-			<name>gecko_sdk_4.0.1/app/bluetooth/common/health_thermometer/sl_health_thermometer.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/app/bluetooth/common/health_thermometer/sl_health_thermometer.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.0.1/app/bluetooth/common/health_thermometer/sl_health_thermometer.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/app/bluetooth/common/health_thermometer/sl_health_thermometer.h</locationURI>
-		</link>
-		<link>
 			<name>gecko_sdk_4.0.1/app/bluetooth/common/ota_dfu/sl_ota_dfu.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/app/bluetooth/common/ota_dfu/sl_ota_dfu.c</locationURI>
@@ -424,16 +414,6 @@
 			<name>gecko_sdk_4.0.1/app/bluetooth/common/ota_dfu/sl_ota_dfu.h</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/app/bluetooth/common/ota_dfu/sl_ota_dfu.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.0.1/app/bluetooth/common/sensor_rht/sl_sensor_rht.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/app/bluetooth/common/sensor_rht/sl_sensor_rht.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.0.1/app/bluetooth/common/sensor_rht/sl_sensor_rht_mock.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/app/bluetooth/common/sensor_rht/sl_sensor_rht_mock.c</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.0.1/app/bluetooth/common/simple_timer_freertos/sl_simple_timer.h</name>
@@ -604,16 +584,6 @@
 			<name>gecko_sdk_4.0.1/platform/emdrv/nvm3/src/nvm3_lock.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/emdrv/nvm3/src/nvm3_lock.c</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.0.1/platform/emdrv/tempdrv/inc/tempdrv.h</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/emdrv/tempdrv/inc/tempdrv.h</locationURI>
-		</link>
-		<link>
-			<name>gecko_sdk_4.0.1/platform/emdrv/tempdrv/src/tempdrv.c</name>
-			<type>1</type>
-			<locationURI>STUDIO_SDK_LOC/platform/emdrv/tempdrv/src/tempdrv.c</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.0.1/platform/radio/rail_lib/common/rail.h</name>
@@ -954,6 +924,21 @@
 			<name>gecko_sdk_4.0.1/platform/service/system/src/sl_system_kernel.c</name>
 			<type>1</type>
 			<locationURI>STUDIO_SDK_LOC/platform/service/system/src/sl_system_kernel.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.0.1/platform/service/udelay/inc/sl_udelay.h</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/service/udelay/inc/sl_udelay.h</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.0.1/platform/service/udelay/src/sl_udelay.c</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/service/udelay/src/sl_udelay.c</locationURI>
+		</link>
+		<link>
+			<name>gecko_sdk_4.0.1/platform/service/udelay/src/sl_udelay_armv6m_gcc.S</name>
+			<type>1</type>
+			<locationURI>STUDIO_SDK_LOC/platform/service/udelay/src/sl_udelay_armv6m_gcc.S</locationURI>
 		</link>
 		<link>
 			<name>gecko_sdk_4.0.1/util/silicon_labs/silabs_core/memory_manager/sl_malloc.c</name>

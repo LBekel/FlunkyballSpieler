@@ -23,14 +23,8 @@ extern const sli_bt_gattdb_t gattdb;
 #define gattdb_led_color                      25
 #define gattdb_led_frequency                  28
 #define gattdb_team                           32
-#define gattdb_health_thermometer             34
-#define gattdb_temperature_measurement        36
-#define gattdb_temperature_type               39
-#define gattdb_intermediate_temperature       41
-#define gattdb_measurement_interval           44
-#define gattdb_valid_range                    46
-#define gattdb_ota                            47
-#define gattdb_ota_control                    49
+#define gattdb_ota                            34
+#define gattdb_ota_control                    36
 
 
 #endif // __GATT_DB_H

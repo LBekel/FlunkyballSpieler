@@ -125,6 +125,12 @@
 // [MODEM]$
 
 // $[CUSTOM_PIN_NAME]
+#define hx711_wire_PORT                          gpioPortB
+#define hx711_wire_PIN                           1
+
+#define hx711_clk_PORT                           gpioPortB
+#define hx711_clk_PIN                            2
+
 // [CUSTOM_PIN_NAME]$
 
 #endif // PIN_CONFIG_H

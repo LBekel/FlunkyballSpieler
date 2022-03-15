@@ -49,7 +49,7 @@
   </service>
   
   <!--Weight Scale-->
-  <service advertise="false" id="weight_scale" name="Weight Scale" requirement="mandatory" sourceId="org.bluetooth.service.weight_scale" type="primary" uuid="181D">
+  <service advertise="true" id="weight_scale" name="Weight Scale" requirement="mandatory" sourceId="org.bluetooth.service.weight_scale" type="primary" uuid="181D">
     <informativeText>Abstract:  This service exposes weight and related data from a weight scale intended for consumer healthcare and sports/fitness applications.  Summary:  The Weight Scale (WS) Service exposes weight and related data from a weight scale (Server) intended for consumer healthcare as well as sports/fitness applications.  </informativeText>
     
     <!--Weight Measurement-->

@@ -1,31 +1,6 @@
 /***************************************************************************//**
  * @file
  * @brief Core application logic.
- *******************************************************************************
- * # License
- * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
- *******************************************************************************
- *
- * SPDX-License-Identifier: Zlib
- *
- * The licensor of this software is Silicon Laboratories Inc.
- *
- * This software is provided 'as-is', without any express or implied
- * warranty. In no event will the authors be held liable for any damages
- * arising from the use of this software.
- *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
- *
- * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software. If you use this software
- *    in a product, an acknowledgment in the product documentation would be
- *    appreciated but is not required.
- * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.
- * 3. This notice may not be removed or altered from any source distribution.
- *
  ******************************************************************************/
 #include <stdbool.h>
 #include "em_common.h"
@@ -42,10 +17,9 @@
 #ifdef SL_CATALOG_CLI_PRESENT
 #include "sl_cli.h"
 #endif // SL_CATALOG_CLI_PRESENT
-#include "sl_sensor_rht.h"
-#include "sl_health_thermometer.h"
 #include "sl_weight_scale.h"
 #include "app.h"
+#include "driver_hx711_basic.h"
 
 // Connection handle.
 static uint8_t app_connection = 0;
@@ -57,28 +31,11 @@ static uint8_t advertising_set_handle = 0xff;
 static volatile bool app_btn0_pressed = false;
 
 // Periodic timer handle.
-static sl_simple_timer_t app_periodic_timer;
 static sl_simple_timer_t app_ws_periodic_timer;
 
 
 // Periodic timer callback.
-static void app_periodic_timer_cb(sl_simple_timer_t *timer, void *data);
 static void app_ws_periodic_timer_cb(sl_simple_timer_t *timer, void *data);
-
-
-#ifndef SL_CATALOG_KERNEL_PRESENT
-/**************************************************************************//**
- * Application Process Action.
- *****************************************************************************/
-SL_WEAK void app_process_action(void)
-{
-  /////////////////////////////////////////////////////////////////////////////
-  // Put your additional application code here!                              //
-  // This is called infinitely.                                              //
-  // Do not call blocking functions from here!                               //
-  /////////////////////////////////////////////////////////////////////////////
-}
-#endif
 
 /**************************************************************************//**
  * Bluetooth stack event handler.
@@ -88,6 +45,7 @@ SL_WEAK void app_process_action(void)
  *****************************************************************************/
 void sl_bt_on_event(sl_bt_msg_t *evt)
 {
+  sl_bt_ws_on_event(evt);
   sl_status_t sc;
   bd_addr address;
   uint8_t address_type;
@@ -209,44 +167,13 @@ void sl_bt_connection_closed_cb(uint16_t reason, uint8_t connection)
   sl_status_t sc;
 
   // Stop timer.
-  sc = sl_simple_timer_stop(&app_periodic_timer);
   sc = sl_simple_timer_stop(&app_ws_periodic_timer);
   app_assert_status(sc);
 }
 
-/**************************************************************************//**
- * Health Thermometer - Temperature Measurement
- * Indication changed callback
- *
- * Called when indication of temperature measurement is enabled/disabled by
- * the client.
- *****************************************************************************/
-void sl_bt_ht_temperature_measurement_indication_changed_cb(uint8_t connection,
-                                                            sl_bt_gatt_client_config_flag_t client_config)
-{
-  sl_status_t sc;
-  app_connection = connection;
-  // Indication or notification enabled.
-  if (sl_bt_gatt_disable != client_config) {
-    // Start timer used for periodic indications.
-    sc = sl_simple_timer_start(&app_periodic_timer,
-                               SL_BT_HT_MEASUREMENT_INTERVAL_SEC * 1000,
-                               app_periodic_timer_cb,
-                               NULL,
-                               true);
-    app_assert_status(sc);
-    // Send first indication.
-    app_periodic_timer_cb(&app_periodic_timer, NULL);
-  }
-  // Indications disabled.
-  else {
-    // Stop timer used for periodic indications.
-    (void)sl_simple_timer_stop(&app_periodic_timer);
-  }
-}
 
 /**************************************************************************//**
- * Health Thermometer - Weight Measurement
+ * Weight Measurement
  * Indication changed callback
  *
  * Called when indication of temperature measurement is enabled/disabled by
@@ -267,7 +194,7 @@ void sl_bt_ws_weight_measurement_indication_changed_cb(uint8_t connection,
                                true);
     app_assert_status(sc);
     // Send first indication.
-    app_ws_periodic_timer_cb(&app_periodic_timer, NULL);
+    app_ws_periodic_timer_cb(&app_ws_periodic_timer, NULL);
   }
   // Indications disabled.
   else {
@@ -297,48 +224,6 @@ void sl_button_on_change(const sl_button_t *handle)
   }
 }
 
-/**************************************************************************//**
- * Timer callback
- * Called periodically to time periodic temperature measurements and indications.
- *****************************************************************************/
-static void app_periodic_timer_cb(sl_simple_timer_t *timer, void *data)
-{
-  (void)data;
-  (void)timer;
-  sl_status_t sc;
-  int32_t temperature = 0;
-  uint32_t humidity = 0;
-  float tmp_c = 0.0;
-  // float tmp_f = 0.0;
-
-  // Measure temperature; units are % and milli-Celsius.
-  sc = sl_sensor_rht_get(&humidity, &temperature);
-  if (sc != SL_STATUS_OK) {
-    app_log_warning("Invalid RHT reading: %lu %ld\n\r", humidity, temperature);
-  }
-
-  // button 0 pressed: overwrite temperature with -20C.
-  if (app_btn0_pressed) {
-    temperature = -20 * 1000;
-  }
-
-  tmp_c = (float)temperature / 1000;
-  app_log_info("Temperature: %5.2f C\n\r", tmp_c);
-  // Send temperature measurement indication to connected client.
-  sc = sl_bt_ht_temperature_measurement_indicate(app_connection,
-                                                 temperature,
-                                                 false);
-  // Conversion to Fahrenheit: F = C * 1.8 + 32
-  // tmp_f = (float)(temperature*18+320000)/10000;
-  // app_log_info("Temperature: %5.2f F\n\r", tmp_f);
-  // Send temperature measurement indication to connected client.
-  // sc = sl_bt_ht_temperature_measurement_indicate(app_connection,
-  //                                                (temperature*18+320000)/10,
-  //                                                true);
-  if (sc) {
-    app_log_warning("Failed to send temperature measurement indication\n\r");
-  }
-}
 
 /**************************************************************************//**
  * Timer callback
@@ -346,23 +231,34 @@ static void app_periodic_timer_cb(sl_simple_timer_t *timer, void *data)
  *****************************************************************************/
 static void app_ws_periodic_timer_cb(sl_simple_timer_t *timer, void *data)
 {
-  (void)data;
-  (void)timer;
-  sl_status_t sc;
-  int32_t weight = 0; //mg
-  float tmp_c = 0.0; //kg
+    (void) data;
+    (void) timer;
+    sl_status_t sc;
+    int32_t weight = 0; //mg
+    float tmp_c = 0.0; //kg
+    //weight = rand() % 5000;
 
+    volatile int32_t raw_voltage;
+    volatile double voltage_v;
 
-  weight = rand() % 5000;
+    if(hx711_basic_read((int32_t*) &raw_voltage, (double*) &voltage_v)==0)
+    {
+        (void) voltage_v;
+        //weight = raw_voltage - 176930;
+        weight = raw_voltage - 177437;
+        //weight = weight / 1850; // 2021
+        weight = weight / 2020;
+        tmp_c = (float) weight / 1000;
+        app_log_info("Weight: %5.3f kg\n\r", tmp_c);
 
-  tmp_c = (float)weight / 1000;
-  app_log_info("Weight: %5.3f kg\n\r", tmp_c);
+        // Send weight measurement indication to connected client.
+        sc = sl_bt_ws_weight_measurement_indicate(app_connection, weight);
+        if(sc)
+        {
+            app_log_warning("Failed to send weight measurement indication\n\r");
+        }
+    }
 
-  // Send weight measurement indication to connected client.
-  sc = sl_bt_ws_weight_measurement_indicate(app_connection, weight);
-  if (sc) {
-    app_log_warning("Failed to send weight measurement indication\n\r");
-  }
 }
 
 #ifdef SL_CATALOG_CLI_PRESENT
