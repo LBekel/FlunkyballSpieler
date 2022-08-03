@@ -15,7 +15,7 @@ include:
 - path: ''
   file_list:
   - {path: app.h}
-sdk: {id: gecko_sdk, version: 4.0.1}
+sdk: {id: gecko_sdk, version: 4.0.2}
 toolchain_settings: []
 component:
 - {id: iostream_retarget_stdio}

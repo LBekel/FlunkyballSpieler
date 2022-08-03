@@ -147,6 +147,13 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         printf("sl_bt_evt_gatt_server_attribute_value_id %d\r\n",evt->data.evt_gatt_server_attribute_value.attribute);
         break;
 
+
+    case sl_bt_evt_gatt_server_characteristic_status_id:
+      //app_log_info("characteristic_status\n\r",evt->data.evt_gatt_server_characteristic_status.status_flags);
+      app_ws_periodic_timer_cb(&app_ws_periodic_timer, NULL);
+
+      break;
+
     // -------------------------------
     // Default event handler.
     default:
@@ -187,12 +194,12 @@ void sl_bt_ws_weight_measurement_indication_changed_cb(uint8_t connection,
   // Indication or notification enabled.
   if (sl_bt_gatt_disable != client_config) {
     // Start timer used for periodic indications.
-    sc = sl_simple_timer_start(&app_ws_periodic_timer,
-                               1000,
-                               app_ws_periodic_timer_cb,
-                               NULL,
-                               true);
-    app_assert_status(sc);
+//    sc = sl_simple_timer_start(&app_ws_periodic_timer,
+//                               100,
+//                               app_ws_periodic_timer_cb,
+//                               NULL,
+//                               true);
+//    app_assert_status(sc);
     // Send first indication.
     app_ws_periodic_timer_cb(&app_ws_periodic_timer, NULL);
   }
