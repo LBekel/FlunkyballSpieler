@@ -15,15 +15,16 @@ include:
 - path: ''
   file_list:
   - {path: app.h}
-sdk: {id: gecko_sdk, version: 4.0.2}
+sdk: {id: gecko_sdk, version: 4.1.0}
 toolchain_settings: []
 component:
 - {id: iostream_retarget_stdio}
 - instance: [btn0]
   id: simple_button
+- {id: bluetooth_feature_gatt_server}
 - instance: [example]
   id: cli
-- {id: bluetooth_feature_gatt_server}
+- {id: in_place_ota_dfu}
 - {id: bluetooth_feature_sm}
 - {id: mpu}
 - {id: gatt_configuration}
@@ -43,12 +44,15 @@ component:
 - {id: bluetooth_feature_advertiser}
 - instance: [vcom]
   id: iostream_usart
+- {id: apploader}
 - {id: bluetooth_feature_system}
+- {id: cmsis_dsp}
 - {id: printf}
 - {id: component_catalog}
 - {id: ota_dfu}
 - {id: bootloader_interface}
 - {id: app_assert}
+- {id: apploader_util}
 other_file:
 - {path: create_bl_files.bat}
 - {path: create_bl_files.sh}

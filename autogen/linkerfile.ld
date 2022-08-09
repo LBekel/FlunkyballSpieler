@@ -26,10 +26,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
-
  MEMORY
  {
-   FLASH   (rx)  : ORIGIN = 0x6000, LENGTH = 0x78000
+   FLASH   (rx)  : ORIGIN = 0x12000, LENGTH = 0x6c000
    RAM     (rwx) : ORIGIN = 0x20000000, LENGTH = 0x8000
  }
 
@@ -37,14 +36,6 @@ ENTRY(Reset_Handler)
 
 SECTIONS
 {
-  .text_apploader :
-  {
-    KEEP(*(.binapploader*))
-  } > FLASH
-  .text_signature :
-  {
-    . = ALIGN(8192);
-  } > FLASH
 
   .text :
   {
@@ -91,6 +82,37 @@ SECTIONS
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
   } > FLASH
   __exidx_end = .;
+
+    .copy.table :
+  {
+    . = ALIGN(4);
+    __copy_table_start__ = .;
+
+    LONG (__etext)
+    LONG (__data_start__)
+    LONG ((__data_end__ - __data_start__) / 4)
+
+    /* Add each additional data section here */
+/*
+    LONG (__etext2)
+    LONG (__data2_start__)
+    LONG ((__data2_end__ - __data2_start__) / 4)
+*/
+    __copy_table_end__ = .;
+  } > FLASH
+
+    .zero.table :
+  {
+    . = ALIGN(4);
+    __zero_table_start__ = .;
+    /* Add each additional bss section here */
+/*
+    LONG (__bss2_start__)
+    LONG ((__bss2_end__ - __bss2_start__) / 4)
+*/
+    __zero_table_end__ = .;
+  } > FLASH
+
   __etext = .;
 
   /* Start placing output sections which are loaded into RAM */
@@ -104,6 +126,7 @@ SECTIONS
     __StackTop = .;
     PROVIDE(__stack = __StackTop);
   } > RAM
+
 
   .noinit . (NOLOAD):
   {
@@ -170,7 +193,7 @@ SECTIONS
   } > RAM
 
   __heap_size = __HeapLimit - __HeapBase;
-  __main_flash_end__ = 0x6000 + 0x78000;
+  __main_flash_end__ = 0x12000 + 0x6c000;
 
    /* This is where we handle flash storage blocks. We use dummy sections for finding the configured
    * block sizes and then "place" them at the end of flash when the size is known. */
@@ -189,4 +212,7 @@ SECTIONS
   linker_storage_begin = linker_storage_end - SIZEOF(.internal_storage);
   linker_storage_size = SIZEOF(.internal_storage);
   __nvm3Base = linker_nvm_begin;
+  ASSERT((linker_storage_begin >= (__etext + SIZEOF(.data))), "FLASH memory overflowed !")
+  app_flash_end = 0x12000 + 0x6c000;
+  ASSERT( (linker_nvm_begin + SIZEOF(.nvm)) <= app_flash_end, "NVM3 is excessing the flash size !")
 }
