@@ -60,6 +60,35 @@
         <indicate authenticated="false" bonded="false" encrypted="false"/>
       </properties>
     </characteristic>
+    
+    <!--Scale offset-->
+    <characteristic const="false" id="scale_offset" name="Scale offset" sourceId="" uuid="eb847748-fb3e-499b-862e-4f694fea29a8">
+      <informativeText/>
+      <value length="4" type="hex" variable_length="false">00000000</value>
+      <properties>
+        <read authenticated="false" bonded="false" encrypted="false"/>
+        <write authenticated="false" bonded="false" encrypted="false"/>
+      </properties>
+    </characteristic>
+    
+    <!--Scale divider-->
+    <characteristic const="false" id="scale_divider" name="Scale divider" sourceId="" uuid="eb847748-fb3e-499b-862e-4f694fea29a9">
+      <informativeText/>
+      <value length="4" type="hex" variable_length="false">00000000</value>
+      <properties>
+        <read authenticated="false" bonded="false" encrypted="false"/>
+        <write authenticated="false" bonded="false" encrypted="false"/>
+      </properties>
+    </characteristic>
+    
+    <!--Weight Scale Feature-->
+    <characteristic const="true" id="weight_scale_feature" name="Weight Scale Feature" sourceId="org.bluetooth.characteristic.weight_scale_feature" uuid="2A9E">
+      <informativeText/>
+      <value length="4" type="hex" variable_length="false">00000000</value>
+      <properties>
+        <read authenticated="false" bonded="false" encrypted="false"/>
+      </properties>
+    </characteristic>
   </service>
   
   <!--LED-->

@@ -19,12 +19,15 @@ extern const sli_bt_gattdb_t gattdb;
 #define gattdb_system_id                      18
 #define gattdb_weight_scale                   19
 #define gattdb_weight_measurement             21
-#define gattdb_led                            23
-#define gattdb_led_color                      25
-#define gattdb_led_frequency                  28
-#define gattdb_team                           32
-#define gattdb_ota                            34
-#define gattdb_ota_control                    36
+#define gattdb_scale_offset                   24
+#define gattdb_scale_divider                  26
+#define gattdb_weight_scale_feature           28
+#define gattdb_led                            29
+#define gattdb_led_color                      31
+#define gattdb_led_frequency                  34
+#define gattdb_team                           38
+#define gattdb_ota                            40
+#define gattdb_ota_control                    42
 
 
 #endif // __GATT_DB_H

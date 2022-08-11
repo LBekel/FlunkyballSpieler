@@ -48,4 +48,11 @@ void sl_bt_ws_weight_measurement_indication_confirmed_cb(uint8_t connection);
  *****************************************************************************/
 void sl_bt_ws_on_event(sl_bt_msg_t *evt);
 
+uint8_t ws_nvm3_write_ws_offset(int32_t offset);
+sl_status_t ws_write_ws_offset_to_gatt(void);
+void ws_write_gatt_ws_offset_to_nvm3(uint8array *value);
+uint8_t ws_nvm3_write_ws_divider(int32_t divider);
+sl_status_t ws_write_ws_divider_to_gatt(void);
+void ws_write_gatt_ws_divider_to_nvm3(uint8array *value);
+
 #endif // SL_HEALTH_THERMOMETER_H

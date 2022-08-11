@@ -20,6 +20,8 @@
 #include "sl_weight_scale.h"
 #include "app.h"
 #include "driver_hx711_basic.h"
+#include "nvm3_default.h"
+#include "nvm3_default_config.h"
 
 // Connection handle.
 static uint8_t app_connection = 0;
@@ -32,7 +34,6 @@ static volatile bool app_btn0_pressed = false;
 
 // Periodic timer handle.
 static sl_simple_timer_t app_ws_periodic_timer;
-
 
 // Periodic timer callback.
 static void app_ws_periodic_timer_cb(sl_simple_timer_t *timer, void *data);
@@ -83,6 +84,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                                                    sizeof(system_id),
                                                    system_id);
       app_assert_status(sc);
+
+      ws_write_ws_offset_to_gatt();
+      ws_write_ws_divider_to_gatt();
 
       app_log_info("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X\n\r",
                    address_type ? "static random" : "public device",
@@ -143,8 +147,19 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       break;
 
     case sl_bt_evt_gatt_server_attribute_value_id:
-        printf("sl_bt_evt_gatt_server_attribute_value_id %d\r\n",evt->data.evt_gatt_server_attribute_value.value.data[0]);
-        printf("sl_bt_evt_gatt_server_attribute_value_id %d\r\n",evt->data.evt_gatt_server_attribute_value.attribute);
+        if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_scale_offset)
+        {
+            ws_write_gatt_ws_offset_to_nvm3(&(evt->data.evt_gatt_server_attribute_value.value));
+        }
+        else if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_scale_divider)
+        {
+            ws_write_gatt_ws_divider_to_nvm3(&(evt->data.evt_gatt_server_attribute_value.value));
+        }
+        else
+        {
+            printf("sl_bt_evt_gatt_server_attribute_value_id %d\r\n",evt->data.evt_gatt_server_attribute_value.value.data[0]);
+            printf("sl_bt_evt_gatt_server_attribute_value_id %d\r\n",evt->data.evt_gatt_server_attribute_value.attribute);
+        }
         break;
 
 
@@ -241,31 +256,12 @@ static void app_ws_periodic_timer_cb(sl_simple_timer_t *timer, void *data)
     (void) data;
     (void) timer;
     sl_status_t sc;
-    int32_t weight = 0; //mg
-    float tmp_c = 0.0; //kg
-    //weight = rand() % 5000;
-
-    volatile int32_t raw_voltage;
-    volatile double voltage_v;
-
-    if(hx711_basic_read((int32_t*) &raw_voltage, (double*) &voltage_v)==0)
+    // Send weight measurement indication to connected client.
+    sc = sl_bt_ws_weight_measurement_indicate(app_connection, 0);
+    if(sc)
     {
-        (void) voltage_v;
-        //weight = raw_voltage - 176930;
-        weight = raw_voltage - 177437;
-        //weight = weight / 1850; // 2021
-        weight = weight / 2020;
-        tmp_c = (float) weight / 1000;
-        app_log_info("Weight: %5.3f kg\n\r", tmp_c);
-
-        // Send weight measurement indication to connected client.
-        sc = sl_bt_ws_weight_measurement_indicate(app_connection, weight);
-        if(sc)
-        {
-            app_log_warning("Failed to send weight measurement indication\n\r");
-        }
+        app_log_warning("Failed to send weight measurement indication\n\r");
     }
-
 }
 
 #ifdef SL_CATALOG_CLI_PRESENT
