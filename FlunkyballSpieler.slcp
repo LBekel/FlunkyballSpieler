@@ -28,6 +28,7 @@ component:
 - {id: in_place_ota_dfu}
 - {id: bluetooth_feature_sm}
 - {id: mpu}
+- {id: bluetooth_feature_legacy_advertiser}
 - {id: gatt_configuration}
 - {id: freertos}
 - instance: [led0]

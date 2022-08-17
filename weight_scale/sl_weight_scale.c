@@ -80,6 +80,15 @@ sl_status_t sl_bt_ws_weight_measurement_indicate(uint8_t connection, int32_t val
                                                buf);
         //app_log_info("%d %d %d %d %d Size %d\n\r",buf[0],buf[1],buf[2],buf[3],buf[4],sizeof(buf));
     }
+    else
+    {
+        weight = 0xffffffff;
+        weight_measurement_val_to_buf(weight, buf);
+        sc = sl_bt_gatt_server_send_indication(connection,
+                                               gattdb_weight_measurement,
+                                               sizeof(buf),
+                                               buf);
+    }
     return sc;
 }
 
@@ -179,13 +188,14 @@ static void weight_scale_init(void)
 
 static void weight_measurement_val_to_buf(int32_t value, uint8_t *buffer)
 {
-  uint32_t tmp_value = ((uint32_t)value & 0x00ffffffu) \
+  uint32_t tmp_value = ((uint32_t)value*2 & 0x00ffffffu) \
                        | ((uint32_t)(-3) << 24);
+
   buffer[0] = 0;
-  buffer[1] = value & 0xff;
-  buffer[2] = (value >> 8) & 0xff;
-  buffer[3] = (value >> 16) & 0xff;
-  buffer[4] = (value >> 24) & 0xff;
+  buffer[1] = tmp_value & 0xff;
+  buffer[2] = (tmp_value >> 8) & 0xff;
+  buffer[3] = (tmp_value >> 16) & 0xff;
+  buffer[4] = (tmp_value >> 24) & 0xff;
 }
 
 /******************************************************************************
@@ -193,7 +203,6 @@ static void weight_measurement_val_to_buf(int32_t value, uint8_t *buffer)
  ******************************************************************************/
 uint8_t ws_nvm3_write_ws_offset(int32_t offset)
 {
-    ws_offset = offset;
 
     if(ECODE_NVM3_OK == nvm3_writeData(NVM3_DEFAULT_HANDLE, WS_OFFSET_NVM3_KEY, &offset, 4))
     {

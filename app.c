@@ -20,8 +20,9 @@
 #include "sl_weight_scale.h"
 #include "app.h"
 #include "driver_hx711_basic.h"
-#include "nvm3_default.h"
+//#include "nvm3_default.h"
 #include "nvm3_default_config.h"
+#include "nvm.h"
 
 // Connection handle.
 static uint8_t app_connection = 0;
@@ -37,6 +38,8 @@ static sl_simple_timer_t app_ws_periodic_timer;
 
 // Periodic timer callback.
 static void app_ws_periodic_timer_cb(sl_simple_timer_t *timer, void *data);
+
+sl_status_t gatt_write_team(uint8_t team);
 
 /**************************************************************************//**
  * Bluetooth stack event handler.
@@ -87,6 +90,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 
       ws_write_ws_offset_to_gatt();
       ws_write_ws_divider_to_gatt();
+      gatt_write_team(nvm_read_team());
 
       app_log_info("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X\n\r",
                    address_type ? "static random" : "public device",
@@ -101,6 +105,11 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       sc = sl_bt_advertiser_create_set(&advertising_set_handle);
       app_assert_status(sc);
 
+      // Generate data for advertising
+      sc = sl_bt_legacy_advertiser_generate_data(advertising_set_handle,
+                                                 sl_bt_advertiser_general_discoverable);
+      app_assert_status(sc);
+
       // Set advertising interval to 100ms.
       sc = sl_bt_advertiser_set_timing(
         advertising_set_handle, // advertising set handle
@@ -109,12 +118,12 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         0,   // adv. duration
         0);  // max. num. adv. events
       app_assert_status(sc);
-      // Start general advertising and enable connections.
-      sc = sl_bt_advertiser_start(
-        advertising_set_handle,
-        sl_bt_advertiser_general_discoverable,
-        sl_bt_advertiser_connectable_scannable);
+
+      // Start advertising and enable connections.
+      sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
+                                         sl_bt_advertiser_connectable_scannable);
       app_assert_status(sc);
+
       app_log_info("Started advertising\n\r");
       break;
 
@@ -136,14 +145,18 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // -------------------------------
     // This event indicates that a connection was closed.
     case sl_bt_evt_connection_closed_id:
-      app_log_info("Connection closed\n\r");
-      // Restart advertising after client has disconnected.
-      sc = sl_bt_advertiser_start(
-        advertising_set_handle,
-        sl_bt_advertiser_general_discoverable,
-        sl_bt_advertiser_connectable_scannable);
-      app_assert_status(sc);
-      app_log_info("Started advertising\n\r");
+        app_log_info("Connection closed\n");
+
+        // Generate data for advertising
+        sc = sl_bt_legacy_advertiser_generate_data(advertising_set_handle,
+                                                   sl_bt_advertiser_general_discoverable);
+        app_assert_status(sc);
+
+        // Restart advertising after client has disconnected.
+        sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
+                                           sl_bt_advertiser_connectable_scannable);
+        app_assert_status(sc);
+        app_log_info("Started advertising\n");
       break;
 
     case sl_bt_evt_gatt_server_attribute_value_id:
@@ -154,6 +167,10 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         else if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_scale_divider)
         {
             ws_write_gatt_ws_divider_to_nvm3(&(evt->data.evt_gatt_server_attribute_value.value));
+        }
+        else if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_team)
+        {
+            nvm_store_team(evt->data.evt_gatt_server_attribute_value.value.data[0]);
         }
         else
         {
@@ -202,27 +219,29 @@ void sl_bt_connection_closed_cb(uint16_t reason, uint8_t connection)
  * the client.
  *****************************************************************************/
 void sl_bt_ws_weight_measurement_indication_changed_cb(uint8_t connection,
-                                                            sl_bt_gatt_client_config_flag_t client_config)
+        sl_bt_gatt_client_config_flag_t client_config)
 {
-  sl_status_t sc;
-  app_connection = connection;
-  // Indication or notification enabled.
-  if (sl_bt_gatt_disable != client_config) {
-    // Start timer used for periodic indications.
+    sl_status_t sc;
+    app_connection = connection;
+    // Indication or notification enabled.
+    if(sl_bt_gatt_disable != client_config)
+    {
+        // Start timer used for periodic indications.
 //    sc = sl_simple_timer_start(&app_ws_periodic_timer,
 //                               100,
 //                               app_ws_periodic_timer_cb,
 //                               NULL,
 //                               true);
 //    app_assert_status(sc);
-    // Send first indication.
-    app_ws_periodic_timer_cb(&app_ws_periodic_timer, NULL);
-  }
-  // Indications disabled.
-  else {
-    // Stop timer used for periodic indications.
-    (void)sl_simple_timer_stop(&app_ws_periodic_timer);
-  }
+        // Send first indication.
+        app_ws_periodic_timer_cb(&app_ws_periodic_timer, NULL);
+    }
+    // Indications disabled.
+    else
+    {
+        // Stop timer used for periodic indications.
+        (void) sl_simple_timer_stop(&app_ws_periodic_timer);
+    }
 }
 
 /**************************************************************************//**
@@ -272,7 +291,7 @@ void hello(sl_cli_command_arg_t *arguments)
   uint8_t address_type;
   sl_status_t sc = sl_bt_system_get_identity_address(&address, &address_type);
   app_assert_status(sc);
-  app_log_info("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X\n\r",
+  app_log_info("Bluetooth %s address: %02X:%02X:%02X:%02X:%02X:%02X\n\r",-
                address_type ? "static random" : "public device",
                address.addr[5],
                address.addr[4],
@@ -282,3 +301,15 @@ void hello(sl_cli_command_arg_t *arguments)
                address.addr[0]);
 }
 #endif // SL_CATALOG_CLI_PRESENT
+
+/******************************************************************************
+ * write team to GATT
+ * @param[in] team number
+ * @param[in] sl_status_t
+ ******************************************************************************/
+sl_status_t gatt_write_team(uint8_t team)
+{
+    sl_status_t sc;
+    sc = sl_bt_gatt_server_write_attribute_value(gattdb_team, 0, sizeof(team), &team);
+    return sc;
+}

@@ -126,12 +126,17 @@ static void blink_task(void *arg)
     vTaskDelay(xDelay);
 
     // Toggle led
-    sl_led_toggle(&LED_INSTANCE);
+
     sc = sl_bt_gatt_server_read_attribute_value(gattdb_led_frequency, 0, sizeof(buf), &readlen, buf);
     app_assert_status(sc);
     if(buf[0]>0)
     {
        xDelay = pdMS_TO_TICKS(1000/buf[0]);
+       sl_led_toggle(&LED_INSTANCE);
+    }
+    else
+    {
+        sl_led_turn_off(&LED_INSTANCE);
     }
 
   }
